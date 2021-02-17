@@ -30,7 +30,6 @@ app.post('/form_data', async (req, res) => {
     uber = await getRestaurants.uber(address, query).then().catch(console.error);
     doordash = await getRestaurants.doordash(address, query).then().catch(console.error);
     queryResponse = query;
-    console.log(doordash.toString());
 });
 
 // send restaurant list
@@ -45,10 +44,10 @@ app.post('/restaurant', async (req, res) => {
     if (req.body.site == "uber") {
         menuItems = await getRestaurants.uberMenu(address, link).then().catch(console.error);
     } else {
+        console.log(req.body.site);
         menuItems = await getRestaurants.doordashMenu(address, link).then().catch(console.error);
     }
     linkResponse = link;
-    console.log(link);
 });
 
 // send restaurant menu
