@@ -72,7 +72,7 @@ function uber(address, query) {
             let restaurants = await page.$$eval('p', tags => tags.map(p => p.innerHTML));
             let links = await page.$$eval('figure + a', tags => tags.map(a => a.href));
             let results = [];
-            for (var i = 0; i < 5; ++i) {
+            for (var i = 0; i < 10; ++i) {
                 results.push([restaurants[i], links[i]]);
             }
             await browser.close();
@@ -105,7 +105,7 @@ function doordash(address, query) {
             let restaurants = await page.$$eval('span[color="TextPrimary"]', spans => spans.map(span => span.innerHTML));
             let links = await page.$$eval('a[data-anchor-id]', tags => tags.map(a => a.href));
             let results = [];
-            for (var i = 0; i < 5; ++i) {
+            for (var i = 0; i < 10; ++i) {
                 results.push([restaurants[i], links[i]]);
             }
             await browser.close();
@@ -130,20 +130,28 @@ function uberMenu(address, link) {
             await page.waitForSelector('#location-typeahead-home-item-0');
             await page.click('#location-typeahead-home-item-0');
 
-            // get menu items
             await page.goto(link, { waitUntil: 'networkidle2' });
+
+            // get restaurant info
+            let location = await page.$eval('p', p => p.innerHTML);
+            location = location.slice(0, location.indexOf(',') - 1);
+
+            // get menu items
             let pics = await page.$$eval('img', imgs => imgs.map(img => img.src));
             pics.shift();
             let menu = await page.$$eval('h4 > div',
                 tags => tags.map(div => div.innerHTML));
             let prices = await page.$$eval('li > div > div > div > div > :nth-child(3) > div',
                 tags => tags.map(div => div.innerHTML));
+
+            // format results
             let results = [];
             for (var i = 0; i < 20; ++i) {
-                results.push([menu[i], prices[i].slice(1), pics[i]]);
+                results.push([menu[i], prices[i], pics[i]]);
             }
+
             await browser.close();
-            return resolve(results);
+            return resolve([location, results]);
         } catch (err) {
             reject(err);
         }
@@ -165,12 +173,22 @@ function doordashMenu(address, link) {
             await page.click('button[aria-label="Find Restaurants"]');
             await page.waitForSelector('span[data-anchor-id="AddressAutocompleteSuggestion"]');
             await page.click('span[data-anchor-id="AddressAutocompleteSuggestion"]');
+            await page.waitForTimeout(1000);
 
             // get menu items
             await page.goto(link, { waitUntil: 'networkidle2' });
             let pics = await page.$$eval('img', imgs => imgs.map(img => img.src));
             pics.splice(0, 2);
             let items = await page.$$eval('div[data-anchor-id="MenuItem"] > button', btns => btns.map(btn => btn.ariaLabel));
+
+            // get restaurant info
+            let location = await page.$$eval('.sc-hPeUyl.hOdhaZ.sc-bdVaJa.gpVEYP', tags => tags[2].innerHTML);
+            location = location.slice(0, location.indexOf('<') - 1);
+            if (location.indexOf(',') != location.lastIndexOf(',')) {
+                location = location.slice(location.indexOf(',') + 2, -1);
+            }
+
+            // format results
             let results = [];
             for (var i = 0; i < 20; ++i) {
                 let item = items[i].split("$");
@@ -179,8 +197,9 @@ function doordashMenu(address, link) {
                 item.push(pics[i]);
                 results.push(item);
             }
+
             await browser.close();
-            return resolve(results);
+            return resolve([location, results]);
         } catch (err) {
             reject(err);
         }
@@ -188,7 +207,8 @@ function doordashMenu(address, link) {
 }
 
 // debugging:
-// doordashMenu('100 seagram', 'https://www.doordash.com/store/1148909/en-US').then(console.log);
+// uberMenu('100 seagram', 'https://www.ubereats.com/kitchenerwaterloo/food-delivery/mei-king-restaurant/Qb7UeBY9RmC4cyBWpQffPw?pl=JTdCJTIyYWRkcmVzcyUyMiUzQSUyMjEwMCUyMFNlYWdyYW0lMjBEciUyMiUyQyUyMnJlZmVyZW5jZSUyMiUzQSUyMkVpZ3hNREFnVTJWaFozSmhiU0JFY2l3Z1YyRjBaWEpzYjI4c0lFOU9JRTR5VEN3Z1EyRnVZV1JoSWxBU1RnbzBDaklKT2Nua0FRYjBLNGdSRGNTd1M1WHp4R01hSGdzUTdzSHVvUUVhRkFvU0NUdkdLb2VxOWl1SUVjZXBZQlppcmJidkRCQmtLaFFLRWdrX00wVFhCZlFyaUJHWWsxS1pYWXNqbHclMjIlMkMlMjJyZWZlcmVuY2VUeXBlJTIyJTNBJTIyZ29vZ2xlX3BsYWNlcyUyMiUyQyUyMmxhdGl0dWRlJTIyJTNBNDMuNDcwNzQ4NyUyQyUyMmxvbmdpdHVkZSUyMiUzQS04MC41MzMwOTU1JTdE').then(console.log).catch(console.error);
+// doordashMenu('100 seagram', 'https://www.doordash.com/store/1148909/en-US').then(console.log).catch(console.error);
 
 module.exports = {
     pass_tests: preparePageForTests,
