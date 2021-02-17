@@ -1,0 +1,43 @@
+body {
+    font-family: 'Nobile', Arial, Helvetica, sans-serif;
+}
+
+#title {
+    margin-top: 4em;
+    margin-bottom: 1em;
+    text-align: center;
+}
+
+#submission {
+    margin: auto;
+    width: 60%;
+    text-align: center;
+}
+
+.form-input {
+    height: 3em;
+}
+
+#btn-submit {
+    margin: 1em;
+}
+
+.scrollable {
+    height: 50em;
+    overflow-y: scroll;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.scrollable::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+}
+
+img {
+    max-width: 100px;
+    max-width: 100px;
+    height: auto;
+    width: auto;
+    margin: 10px;
+}
