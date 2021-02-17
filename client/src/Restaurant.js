@@ -5,9 +5,10 @@ class Restaurant extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            location: props.location,
+            locationName: props.location,
             link: props.link,
             address: props.address,
+            locationAddress: '',
             menuItems: [],
             isLoading: true
         }
@@ -18,7 +19,8 @@ class Restaurant extends Component {
             .then((res) => {
                 this.setState({
                     isLoading: false,
-                    menuItems: res.data.menuItems
+                    locationAddress: res.data.menuItems[0],
+                    menuItems: res.data.menuItems[1]
                 });
             })
             .catch(err => console.error(err));
@@ -32,33 +34,37 @@ class Restaurant extends Component {
             await delay(1000);
 
             results = await axios.get('http://localhost:5000/menu');
-            console.log('server: ' + results.data.link);
-            console.log('local: ' + this.state.link);
         }
         return results;
     }
 
     render() {
         const menu = this.state.menuItems.map(item =>
-            <li className="list-group-item d-flex">
+            <a href={this.state.link} className="list-group-item list-group-item-action d-flex">
                 <img src={item[2]} />
                 <div>
                     <h2>{item[0]}</h2>
                     <h3>{item[1]}</h3>
                 </div>
-            </li>);
+            </a>);
         return (
             <div>
-                <h2>{this.state.location}</h2>
+                <h2>{this.state.locationName}</h2>
+
                 {this.state.isLoading ?
                     <div className="d-flex justify-content-center">
                         <div className="spinner-border" role="status">
                             <span className="visually-hidden">Loading...</span>
                         </div>
                     </div> :
-                    <ul className="scrollable list-group">
-                        {menu}
-                    </ul>
+                    <div>
+                        <span>
+                            {this.state.locationAddress}
+                        </span>
+                        <div className="scrollable list-group">
+                            {menu}
+                        </div>
+                    </div>
                 }
             </div>
         );
