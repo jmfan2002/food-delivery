@@ -25,6 +25,7 @@ class Input extends React.Component {
         this.callBackend = this.callBackend.bind(this);
         this.startLoading = this.startLoading.bind(this);
         this.launchRestaurant = this.launchRestaurant.bind(this);
+        this.backButton = this.backButton.bind(this);
     }
 
     async callBackend(inputQuery) {
@@ -35,8 +36,6 @@ class Input extends React.Component {
             await delay(1000);
 
             results = await axios.get('http://localhost:5000/results');
-            console.log('result: ' + results.data.query);
-            console.log('query: ' + inputQuery);
         }
         this.setState({
             uber: results.data.uberData,
@@ -85,7 +84,7 @@ class Input extends React.Component {
                     showDoordashList: true
                 });
             } catch (err) {
-                console.log('add error handling' + err);
+                console.log(err);
             }
         })();
     }
@@ -116,11 +115,27 @@ class Input extends React.Component {
             .catch(err => console.error(err));
     }
 
+    backButton(site) {
+        if (site == 'uber') {
+            this.setState({
+                showUberList: true
+            });
+        } else {
+            this.setState({
+                showDoordashList: true
+            });
+        }
+    }
+
     render() {
-        const uber = this.state.uber.map(result =>
-            <a href="#" className="list-group-item list-group-item-action" onClick={(e) => this.launchRestaurant(e, 'uber', result[1])}>{result[0]}</a>);
-        const doordash = this.state.doordash.map(result =>
-            <a href="#" className="list-group-item list-group-item-action" onClick={(e) => this.launchRestaurant(e, 'doordash', result[1])}>{result[0]}</a>);
+        const uber = (this.state.uber && this.state.uber.length) ? (
+            this.state.uber.map(result =>
+                <a href="#" className="list-group-item list-group-item-action" onClick={(e) => this.launchRestaurant(e, 'uber', result[1])}>{result[0]}</a>)
+        ) : (<h4>No results, please try again</h4>);
+        const doordash = (this.state.doordash && this.state.doordash.length) ? (
+            this.state.doordash.map(result =>
+                <a href="#" className="list-group-item list-group-item-action" onClick={(e) => this.launchRestaurant(e, 'doordash', result[1])}>{result[0]}</a>)
+        ) : (<h4>No results, please try again</h4>);
         return (
             <div>
                 <form id="submission" onSubmit={this.handleSubmit}>
@@ -149,7 +164,12 @@ class Input extends React.Component {
                                     <div className="list-group">
                                         {uber}
                                     </div>
-                                </div> : this.state.uberClicked && <Restaurant location={this.state.location} link={this.state.link} address={this.state.submitAddress} />}
+                                </div> : this.state.uberClicked &&
+                                <div>
+                                    <button class="btn btn-light"
+                                        onClick={() => this.backButton('uber')}>Back</button>
+                                    <Restaurant location={this.state.location} link={this.state.link} address={this.state.submitAddress} />
+                                </div>}
                         </div>
                         <div className="col-6 d-flex justify-content-center">
                             {this.state.showDoordashList ?
@@ -158,7 +178,12 @@ class Input extends React.Component {
                                     <div className="list-group">
                                         {doordash}
                                     </div>
-                                </div> : this.state.doordashClicked && <Restaurant location={this.state.location} link={this.state.link} address={this.state.submitAddress} />}
+                                </div> : this.state.doordashClicked &&
+                                <div>
+                                    <button className="btn btn-light"
+                                        onClick={() => this.backButton('doordash')}>Back</button>
+                                    <Restaurant location={this.state.location} link={this.state.link} address={this.state.submitAddress} />
+                                </div>}
                         </div>
                     </div>
                 </div>
